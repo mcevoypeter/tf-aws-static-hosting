@@ -7,6 +7,11 @@ terraform {
   }
 }
 
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
+
 resource "aws_s3_bucket" "this" {
   bucket = var.domain
 }
@@ -41,6 +46,8 @@ resource "aws_s3_bucket_policy" "this" {
   policy = data.aws_iam_policy_document.allow_access_from_cloudfront.json
 }
 
+# To refer to this CloudFront distribution by its alias (i.e. var.domain),
+# add a CNAME record to the domain registrar where var.domain is registered.
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
   default_root_object = "index.html"
@@ -50,6 +57,7 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id                = aws_s3_bucket.this.id
     origin_access_control_id = aws_cloudfront_origin_access_control.this.id
   }
+  aliases = [var.domain]
   # AWS Managed-CachingOptimized
   default_cache_behavior {
     cache_policy_id  = data.aws_cloudfront_cache_policy.managed_caching_optimized.id
@@ -65,6 +73,10 @@ resource "aws_cloudfront_distribution" "this" {
       locations        = []
     }
   }
+  viewer_certificate {
+    acm_certificate_arn = aws_acm_certificate.this.arn
+    ssl_support_method  = "sni-only"
+  }
 }
 
 resource "aws_cloudfront_origin_access_control" "this" {
@@ -76,4 +88,14 @@ resource "aws_cloudfront_origin_access_control" "this" {
 
 data "aws_cloudfront_cache_policy" "managed_caching_optimized" {
   name = "Managed-CachingOptimized"
+}
+
+resource "aws_acm_certificate" "this" {
+  # The certificate must be in us-east-1 according to https://stackoverflow.com/a/75795466.
+  provider          = aws.us_east_1
+  domain_name       = var.domain
+  validation_method = "DNS"
+  lifecycle {
+    create_before_destroy = true
+  }
 }
