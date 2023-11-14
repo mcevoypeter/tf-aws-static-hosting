@@ -57,6 +57,13 @@ resource "aws_cloudfront_distribution" "this" {
     target_origin_id = aws_s3_bucket.this.id
     # Redirect HTTP to HTTPS.
     viewer_protocol_policy = "redirect-to-https"
+    dynamic "function_association" {
+      for_each = var.functions
+      content {
+        event_type   = function_association.value["event_type"]
+        function_arn = function_association.value["function_arn"]
+      }
+    }
   }
   restrictions {
     geo_restriction {
