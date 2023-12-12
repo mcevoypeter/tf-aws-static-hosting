@@ -1,5 +1,7 @@
 # AWS Static Hosting
 
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE.txt)
+
 This is a [Terraform] module for hosting a static bundle (i.e. static site or [SPA]) on [AWS] using [S3] and [CloudFront].
 
 ## Inputs
@@ -28,6 +30,10 @@ resource "aws_cloudfront_function" "example" {
   code    = file("${path.module}/ExampleViewerRequest.js")
 }
 ```
+
+## License
+
+This project is licensed under the terms of the [MIT license](https://en.wikipedia.org/wiki/MIT_License).
 
 [AWS]: https://aws.amazon.com/
 [CloudFront]: https://aws.amazon.com/cloudfront/
