@@ -4,7 +4,9 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "this" {
-  bucket = var.domain
+  # AWS recommends against using dots in S3 bucket names. See
+  # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.
+  bucket = replace(var.domain, ".", "-")
 }
 
 resource "aws_s3_bucket_public_access_block" "this" {
